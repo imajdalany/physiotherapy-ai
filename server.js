@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const cloudflare_API_TOKEN = process.env.cloudflare_API_TOKEN;
 const cloudflare_ACCOUNT_ID = process.env.cloudflare_ACCOUNT_ID;
-const MODEL_NAME = "@cf/meta/llama-2-7b-chat-int8";
+const MODEL_NAME = "@cf/meta/llama-2-7b-chat-int8"; //
 
 const exercisedb_API_KEY = process.env.exercisedb_API_KEY;
 const exercisedb_API_HOST = process.env.exercisedb_API_HOST;
