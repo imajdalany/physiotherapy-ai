@@ -1,6 +1,14 @@
 const axios = require("axios");
-
+const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 const cloudflare_API_TOKEN = process.env.cloudflare_API_TOKEN;
 const cloudflare_ACCOUNT_ID = process.env.cloudflare_ACCOUNT_ID;
@@ -184,12 +192,175 @@ async function retryWithDelay(fn, retries = 3, delay = 1000) {
     return retryWithDelay(fn, retries - 1, delay * 2); // Exponential backoff
   }
 }
-(async () => {
-  const userPainDescription = "I have lower back pain from sitting too long.";
 
+const handleErrors = (err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong!" });
+};
+
+// (async () => {
+//   const userPainDescription = "I have lower back pain from sitting too long.";
+
+//   try {
+//     const result = await retryWithDelay(async () => {
+//       let advice = await getPhysioAdvice(userPainDescription);
+
+//       // Clean and parse response
+//       advice = JSON.parse(
+//         advice
+//           .replace(/```json/g, "")
+//           .replace(/```/g, "")
+//           .replace(/^"+|"+$/g, "") // Remove surrounding quotes
+//           .trim()
+//       );
+
+//       // Validate exercise list (predefined for reliability)
+//       const validExercises = [
+//         "air bike",
+//         "bench dip (knees bent)",
+//         "bench hip extension",
+//         "bottoms-up",
+//         "chest dip",
+//         "chin-ups (narrow parallel grip)",
+//         "close-grip push-up",
+//         "crunch floor",
+//         "dead bug",
+//         "decline push-up",
+//         "diamond push-up",
+//         "donkey calf raise",
+//         "flutter kicks",
+//         "front plank with twist",
+//         "handstand push-up",
+//         "hanging leg raise",
+//         "hanging pike",
+//         "hyperextension",
+//         "incline push-up",
+//         "inverted row",
+//         "jackknife sit-up",
+//         "jump squat",
+//         "kipping muscle up",
+//         "mountain climber",
+//         "muscle up",
+//         "oblique crunches floor",
+//         "one arm chin-up",
+//         "pull-up",
+//         "push-up",
+//         "push-up to side plank",
+//         "reverse crunch",
+//         "reverse grip pull-up",
+//         "ring dips",
+//         "run",
+//         "russian twist",
+//         "scapular pull-up",
+//         "shoulder tap push-up",
+//         "single arm push-up",
+//         "superman push-up",
+//         "triceps dip",
+//         "wind sprints",
+//         "burpee",
+//         "clap push up",
+//         "plyo push up",
+//         "wide hand push up",
+//         "chin-up",
+//         "one leg squat",
+//         "sissy squat",
+//         "standing calf raise (on a staircase)",
+//         "hamstring stretch",
+//         "world greatest stretch",
+//         "lunge with twist",
+//         "single leg squat (pistol) male",
+//         "split squats",
+//         "scapula push-up",
+//         "glute-ham raise",
+//         "front lever",
+//         "back lever",
+//         "handstand",
+//         "skin the cat",
+//         "bear crawl",
+//         "skater hops",
+//         "l-pull-up",
+//         "l-sit on floor",
+//         "v-sit on floor",
+//         "glute bridge march",
+//         "lunge with jump",
+//         "reverse plank with leg lift",
+//         "curtsey squat",
+//         "archer pull up",
+//         "archer push up",
+//         "bodyweight drop jump squat",
+//         "pike-to-cobra push-up",
+//         "side lying hip adduction (male)",
+//         "standing archer",
+//       ].map((e) => e.toLowerCase());
+
+//       const recommendedExercise =
+//         advice.exercises[0].exercise_name.toLowerCase();
+
+//       if (!validExercises.includes(recommendedExercise)) {
+//         throw new Error(`Invalid exercise: ${recommendedExercise}`);
+//       }
+
+//       // Verify structure
+//       if (
+//         !advice?.exercises?.[0]?.steps ||
+//         !advice?.exercises?.[0]?.precautions
+//       ) {
+//         throw new Error("Invalid response structure");
+//       }
+
+//       // Try to get GIF
+//       const gifUrl = await getExerciseGif(advice.exercises[0].exercise_name);
+//       if (!gifUrl) throw new Error("Failed to get exercise GIF");
+
+//       return { advice, gifUrl };
+//     }, 5); // 5 retries max
+
+//     // If successful
+//     console.log("Exercise:", result.advice.exercises[0].exercise_name);
+//     console.log("Steps:", result.advice.exercises[0].steps.join("\n- "));
+//     console.log(
+//       "Precautions:",
+//       result.advice.exercises[0].precautions.join("\n- ")
+//     );
+//     console.log("GIF URL:", result.gifUrl);
+//   } catch (error) {
+//     console.error("Final error after retries:", error.message);
+//   }
+// })();
+
+app.post("/api/recommendations", async (req, res) => {
   try {
+    const { painDescription } = req.body;
+
+    if (!painDescription) {
+      return res.status(400).json({ error: "Pain description is required" });
+    }
+
+    // let advice = await getPhysioAdvice(painDescription);
+    // advice = JSON.parse(
+    //   advice
+    //     .replace(/```json/g, "")
+    //     .replace(/```/g, "")
+    //     .trim()
+    // );
+
+    // // Validate exercise
+    // const validExercises = SYSTEM_PROMPT.match(/\[.*?\]/s)[0]
+    //   .replace(/"/g, "")
+    //   .split(", ")
+    //   .map((e) => e.trim().toLowerCase());
+
+    // const recommendedExercise = advice.exercises[0].exercise_name.toLowerCase();
+
+    // if (!validExercises.includes(recommendedExercise)) {
+    //   return res.status(400).json({ error: "Invalid exercise recommended" });
+    // }
+
+    // // Get GIF URL
+    // const gifUrl = await getExerciseGif(advice.exercises[0].exercise_name);
+
     const result = await retryWithDelay(async () => {
-      let advice = await getPhysioAdvice(userPainDescription);
+      let advice = await getPhysioAdvice(painDescription);
 
       // Clean and parse response
       advice = JSON.parse(
@@ -301,15 +472,26 @@ async function retryWithDelay(fn, retries = 3, delay = 1000) {
       return { advice, gifUrl };
     }, 5); // 5 retries max
 
-    // If successful
-    console.log("Exercise:", result.advice.exercises[0].exercise_name);
-    console.log("Steps:", result.advice.exercises[0].steps.join("\n- "));
-    console.log(
-      "Precautions:",
-      result.advice.exercises[0].precautions.join("\n- ")
-    );
-    console.log("GIF URL:", result.gifUrl);
+    res.json({
+      success: true,
+      exercise: {
+        name: result.advice.exercises[0].exercise_name,
+        steps: result.advice.exercises[0].steps,
+        precautions: result.advice.exercises[0].precautions,
+        gifUrl: result.gifUrl,
+      },
+      disclaimer: result.advice.disclaimer,
+    });
   } catch (error) {
-    console.error("Final error after retries:", error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
-})();
+});
+
+// Start server
+app.use(handleErrors);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
