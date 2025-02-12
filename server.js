@@ -10,12 +10,12 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const cloudflare_API_TOKEN = process.env.cloudflare_API_TOKEN;
-const cloudflare_ACCOUNT_ID = process.env.cloudflare_ACCOUNT_ID;
+const cloudflare_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const cloudflare_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const MODEL_NAME = "@cf/meta/llama-2-7b-chat-int8"; //
 
-const exercisedb_API_KEY = process.env.exercisedb_API_KEY;
-const exercisedb_API_HOST = process.env.exercisedb_API_HOST;
+const exercisedb_API_KEY = process.env.EXERCISEDB_API_KEY;
+const exercisedb_API_HOST = process.env.EXERCISEDB_API_HOST;
 
 const BASE_URL = `https://api.cloudflare.com/client/v4/accounts/${cloudflare_ACCOUNT_ID}/ai/run`;
 
@@ -130,7 +130,28 @@ dont say any word other than the json
 
 dont say any word other than the json
 `;
+//const axios = require("axios");
 
+//async function getPhysioAdvice(input) {
+ // const url = "https://exercise-api.com/advice"; // ✅ Ensure this is correct
+ // const params = { query: input };
+
+  //try {
+  //  const response = await axios.get(url, { params });
+    
+    // ✅ Check if the response structure is correct
+  //  if (response.data && response.data.advice) {
+    //  return response.data.advice;
+   // } else {
+    //  console.error("Unexpected response format:", response.data);
+    //  return "No advice found. Please try again.";
+   // }
+//} catch (error) {
+  //  console.error("Error fetching physiotherapy advice:", error.response?.data || error.message);
+    
+  //  return {
+    //  error: error.response?.data || "An unexpected error occurred while fetching advice."};}}
+   
 async function getPhysioAdvice(userMessage) {
   const data = {
     messages: [
@@ -149,10 +170,17 @@ async function getPhysioAdvice(userMessage) {
     const response = await axios.post(`${BASE_URL}/${MODEL_NAME}`, data, {
       headers,
     });
-    return response.data.result.response;
+    let advice = response.data.result.response;
+    advice = advice
+  .replace(/```json/g, "")  // Remove markdown JSON markers
+  .replace(/```/g, "")  // Remove ending markers
+  .replace(/^"+|"+$/g, "")  // Remove extra surrounding quotes
+  .trim();
+   const parsedAdvice = JSON.parse(advice);
+   return parsedAdvice;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
-    return "Sorry, I encountered an error. Please try again.";
+    return   error: error.response?.data || "An unexpected error occurred while fetching advice."
   }
 }
 
